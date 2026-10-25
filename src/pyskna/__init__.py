@@ -12,7 +12,6 @@ from .ecg import (
     notch_filter,
 )
 from .io import load_delimited, load_lvm
-from .matlab import analyze_matlab_workflow
 from .models import (
     Burst,
     BurstAnalysis,
@@ -55,7 +54,6 @@ __all__ = [
     "SKNAAnalysis",
     "analyze_cpt",
     "analyze_ecg",
-    "analyze_matlab_workflow",
     "analyze_simultaneous",
     "analyze_skna",
     "artifact_mask",

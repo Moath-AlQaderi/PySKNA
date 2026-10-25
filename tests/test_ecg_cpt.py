@@ -7,7 +7,6 @@ matplotlib.use("Agg")
 from pyskna import (
     analyze_cpt,
     analyze_ecg,
-    analyze_matlab_workflow,
     plot_cpt_analysis,
     plot_processing_steps,
 )
@@ -55,17 +54,4 @@ def test_cpt_workflow_and_visualizations():
     fig2, _ = plot_processing_steps(result.skna)
     fig1.canvas.draw()
     fig2.canvas.draw()
-
-
-def test_matlab_compatibility_workflow():
-    fs = 2500.0
-    time = np.arange(int(15 * fs)) / fs
-    skna_mv = 0.001 * np.sin(2 * np.pi * 700 * time)
-    ecg = synthetic_ecg(time)
-    skna_result, ecg_result = analyze_matlab_workflow(
-        time, skna_mv, ecg, baseline=(0, 10), ecg_peak_height=0.02
-    )
-    assert skna_result.metadata["askna_source"] == "rSKNA"
-    assert skna_result.threshold is not None
-    assert ecg_result.peak_indices.size > 10
 

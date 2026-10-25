@@ -1,6 +1,6 @@
 # PySKNA
 
-PySKNA is an open-source Python library for reproducible analysis of skin sympathetic nerve activity (SKNA), capacitive SKNA (cSKNA), and simultaneous SKNA/ECG recordings. It provides a paper-guided processing pipeline, a direct compatibility translation of the supplied MATLAB workflow, cold pressor test (CPT) analysis, sympathetic-burst metrics, heart-rate/HRV extraction, file loading, and publication-ready visualizations.
+PySKNA is an open-source Python library for reproducible analysis of skin sympathetic nerve activity (SKNA), capacitive SKNA (cSKNA), and simultaneous SKNA/ECG recordings. It provides a paper-guided processing pipeline, cold pressor test (CPT) analysis, sympathetic-burst metrics, heart-rate/HRV extraction, file loading, and publication-ready visualizations.
 
 > **Research software notice:** PySKNA is not a medical device and is not intended for diagnosis or clinical decision-making. Validate acquisition settings and outputs for your hardware, population, and protocol.
 
@@ -16,8 +16,6 @@ raw recording → detrend → 500–1000 Hz band-pass → rSKNA
 ```
 
 These defaults follow Hsu et al. (2025), *Flexible Electronic Sensor for Noncontact Simultaneous Measurement of Capacitive Skin Sympathetic Nerve Activity (cSKNA) and cECG*, IEEE Transactions on Instrumentation and Measurement, DOI [10.1109/TIM.2025.3544747](https://doi.org/10.1109/TIM.2025.3544747). The paper sampled at 10 kHz, separated cSKNA with a third-order 500–1000 Hz Butterworth filter, rectified it, integrated it over 100 ms, and averaged it over 5 s. It defined the burst threshold as `mean + 3 × SD` of baseline aSKNA and the CPT overdrive rate as `(during-CPT mean − threshold) / threshold × 100%`.
-
-The supplied MATLAB code is also represented explicitly by `analyze_matlab_workflow()`. That function preserves the script’s 500–999 Hz SKNA filter, 10 ms leaky envelope, 5 s averaging of rSKNA, 5–20 Hz ECG filter, 0.5 s R-peak spacing, and optional 0.08 peak-height threshold.
 
 ## Installation
 
@@ -117,29 +115,14 @@ print(ecg_result.hrv)
 pyskna.plot_simultaneous(skna_result, ecg_result)
 ```
 
-For the exact choices encoded in the supplied MATLAB script:
-
-```python
-skna_result, ecg_result = pyskna.analyze_matlab_workflow(
-    time,
-    skna_mv,
-    ecg_mv,
-    baseline=(11.5, 71.5),
-    skna_unit_scale=1000,
-    ecg_peak_height=0.08,
-)
-```
-
-The source MATLAB file ends partway through its HR phase-indexing section. PySKNA ports every complete operation and supplies a finished, tested before/during/after CPT summary through `analyze_cpt()`.
-
 ## Choosing the iSKNA definition
 
 `integrate_skna()` supports two explicit definitions because published and legacy workflows use the word “integrate” differently:
 
-- `method="leaky"` (default) applies a causal exponential envelope with a 100 ms time constant and retains amplitude units. This matches common SNA processing and the structure of the supplied MATLAB recurrence.
+- `method="leaky"` (default) applies a causal exponential envelope with a 100 ms time constant and retains amplitude units. This matches common SNA processing.
 - `method="moving_integral"` calculates a trailing Riemann integral over 100 ms and returns amplitude-seconds, a literal implementation of summed/integrated rSKNA.
 
-Always report the selected method and time constant. The MATLAB compatibility function intentionally uses the source script’s 10 ms value, even though its comment says 100 ms.
+Always report the selected method and time constant.
 
 ## Function reference
 
@@ -147,7 +130,7 @@ Always report the selected method and time constant. The MATLAB compatibility fu
 
 | Function | Purpose |
 |---|---|
-| `polynomial_detrend(signal, degree=3, time=None, keep_mean=True)` | Removes slow polynomial drift. Cubic detrending and mean restoration match the MATLAB script. |
+| `polynomial_detrend(signal, degree=3, time=None, keep_mean=True)` | Removes slow polynomial drift with optional mean restoration. |
 | `bandpass_filter(signal, fs, lowcut, highcut, order=3)` | General zero-phase Butterworth band-pass filter with cutoff and Nyquist validation. |
 | `filter_skna(signal, fs, lowcut=500, highcut=1000, order=3)` | Extracts the standard high-frequency SKNA band. |
 | `rectify_skna(signal)` | Performs full-wave rectification to produce rSKNA. |
@@ -172,20 +155,19 @@ These additions are inspired by conventional capabilities described for the open
 | Function | Purpose |
 |---|---|
 | `notch_filter(signal, fs, frequency=60, quality_factor=30)` | Suppresses power-line interference. |
-| `filter_ecg(signal, fs, lowcut=0.5, highcut=35, ...)` | Applies ECG band-pass and optional notch filtering. Use 5–20 Hz for MATLAB compatibility or 0.05–35 Hz for long paper-style records. |
+| `filter_ecg(signal, fs, lowcut=0.5, highcut=35, ...)` | Applies ECG band-pass and optional notch filtering. Use 0.05–35 Hz for long paper-style records. |
 | `detect_r_peaks(ecg, fs, min_distance=0.5, height=None, prominence=None)` | Detects R peaks using SciPy peak criteria. |
 | `instantaneous_heart_rate(peak_times)` | Converts RR intervals to bpm. |
 | `bin_heart_rate(hr_time, heart_rate, start, stop, window_seconds=5)` | Averages HR into fixed bins aligned with aSKNA. Empty bins are `NaN`. |
 | `hrv_time_domain(peak_times)` | Returns mean RR, SDNN, RMSSD, pNN50, and mean HR. |
 | `analyze_ecg(...)` | Runs detrending, ECG filtering, R-peak detection, HR, 5 s binning, and HRV. |
 
-### Experiments, compatibility, and I/O
+### Experiments and I/O
 
 | Function | Purpose |
 |---|---|
 | `analyze_cpt(...)` | Calculates baseline threshold, before/during/after aSKNA statistics, overdrive rate, and optional simultaneous HR response. |
 | `analyze_simultaneous(skna, ecg, fs, ...)` | Processes synchronous SKNA and ECG arrays together. |
-| `analyze_matlab_workflow(time, skna, ecg, ...)` | Reproduces the complete processing choices from the supplied MATLAB script. |
 | `load_delimited(path, ...)` | Loads time and signal columns from CSV, TSV, TXT, or numeric LVM data. |
 | `load_lvm(path, ...)` | Detects an LVM header and loads the chosen time and signal columns. |
 | `sampling_frequency(time)` | Infers `fs` and rejects materially irregular timestamps. |
@@ -221,7 +203,7 @@ fig.savefig("processing-steps.png", dpi=300, bbox_inches="tight")
 
 ## Methodological cautions
 
-- A 1000 Hz upper cutoff is invalid at exactly 2000 Hz sampling because it equals Nyquist. Use a lower cutoff (the MATLAB script uses 999 Hz) or, preferably, acquire faster.
+- A 1000 Hz upper cutoff is invalid at exactly 2000 Hz sampling because it equals Nyquist. Use a lower upper cutoff or, preferably, acquire faster.
 - `filtfilt`-style zero-phase filtering is noncausal and intended for offline analysis.
 - Short records can produce unstable low-frequency ECG filtering and do not support reliable HRV.
 - R-peak height is unit-dependent. Prefer prominence or set a height appropriate to your acquisition chain.
@@ -237,7 +219,7 @@ pytest
 ruff check .
 ```
 
-The test suite covers filter behavior, rectification/integration, aSKNA windows, threshold and overdrive equations, burst metrics, ECG/HR extraction, CPT summaries, MATLAB compatibility, and plotting smoke tests. See [`examples/basic_analysis.py`](examples/basic_analysis.py) for a complete synthetic example.
+The test suite covers filter behavior, rectification/integration, aSKNA windows, threshold and overdrive equations, burst metrics, ECG/HR extraction, CPT summaries, and plotting smoke tests. See [`examples/basic_analysis.py`](examples/basic_analysis.py) for a complete synthetic example.
 
 ## References
 

@@ -38,8 +38,7 @@ def filter_ecg(
     """Band-pass an ECG and optionally suppress power-line noise.
 
     The paper uses 0.05–35 Hz; 0.5 Hz is the safer default for digital
-    short-record filtering. Pass ``lowcut=5, highcut=20`` to reproduce the
-    supplied MATLAB script.
+    filtering of short records.
     """
     result = bandpass_filter(signal, fs, lowcut, highcut, order=order)
     if notch is not None and notch < fs / 2:
@@ -137,7 +136,7 @@ def analyze_ecg(
     min_peak_distance: float = 0.5,
     hr_window: float = 5.0,
 ) -> ECGAnalysis:
-    """Port the MATLAB ECG filtering, peak detection, HR, and 5-s averaging steps."""
+    """Run ECG filtering, peak detection, HR, and 5-s averaging."""
     raw = as_1d_finite(signal, "ecg")
     fs = validate_fs(fs)
     timestamps = resolve_time(time, raw.size, fs)

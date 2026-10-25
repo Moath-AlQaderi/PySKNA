@@ -13,18 +13,18 @@ from .models import Burst, BurstAnalysis, SKNAAnalysis
 def polynomial_detrend(
     signal: ArrayLike, degree: int = 3, *, time: ArrayLike | None = None, keep_mean: bool = True
 ) -> NDArray[np.float64]:
-    """Remove a polynomial trend, matching the supplied MATLAB workflow.
+    """Remove a polynomial trend from a signal.
 
     Parameters
     ----------
     signal:
         One-dimensional signal.
     degree:
-        Polynomial degree. The supplied MATLAB script uses 3.
+        Polynomial degree. Cubic detrending is the default.
     time:
         Optional time coordinates. Sample indices are used otherwise.
     keep_mean:
-        Add the original mean back after detrending, as in the MATLAB script.
+        Add the original mean back after detrending.
     """
     values = as_1d_finite(signal)
     if not isinstance(degree, (int, np.integer)) or degree < 0:
@@ -263,8 +263,8 @@ def analyze_skna(
 ) -> SKNAAnalysis:
     """Run the complete SKNA → rSKNA → iSKNA → aSKNA workflow.
 
-    ``unit_scale=1000`` converts millivolts to microvolts, matching the supplied
-    MATLAB script. Inputs already in microvolts should keep the default 1.
+    ``unit_scale=1000`` converts millivolts to microvolts. Inputs already in
+    microvolts should keep the default 1.
     """
     raw = as_1d_finite(signal) * float(unit_scale)
     fs = validate_fs(fs)

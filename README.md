@@ -1,5 +1,9 @@
 # PySKNA
 
+<p align="center">
+  <img src="assets/pyskna-logo.png" alt="PySKNA logo: neural and cardiac waveforms forming a python-inspired mark" width="760">
+</p>
+
 PySKNA is an open-source Python library for reproducible analysis of skin sympathetic nerve activity (SKNA), capacitive SKNA (cSKNA), and simultaneous SKNA/ECG recordings. It provides a paper-guided processing pipeline, cold pressor test (CPT) analysis, sympathetic-burst metrics, heart-rate/HRV extraction, file loading, and publication-ready visualizations.
 
 > **Research software notice:** PySKNA is not a medical device and is not intended for diagnosis or clinical decision-making. Validate acquisition settings and outputs for your hardware, population, and protocol.

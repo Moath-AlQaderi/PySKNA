@@ -10,8 +10,6 @@ dist/
 .venv/
 venv/
 tmp/
-*.png
-*.svg
 .DS_Store
 
 # Local research inputs (not redistributed by this repository)
